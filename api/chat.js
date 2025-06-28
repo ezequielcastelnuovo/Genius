@@ -9,7 +9,7 @@ export default async function handler(req, res) {
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
-        "HTTP-Referer": "https://genius-ten-orpin.vercel.app", // Cambiá esto si tenés otro dominio
+        "HTTP-Referer": "https://genius-ten-orpin.vercel.app", // importante que coincida con el dominio
       },
       body: JSON.stringify({
         model: "openai/gpt-3.5-turbo",
@@ -23,16 +23,15 @@ export default async function handler(req, res) {
     });
 
     const data = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(data.error?.message || "Error en la respuesta de la API");
+    console.log("🔍 Respuesta completa:", data); // --> esto ayuda a debuggear
+
+    if (!response.ok || !data.choices || !data.choices[0]?.message?.content) {
+      return res.status(500).json({ message: "Error en la respuesta de la IA." });
     }
 
-    const message = data.choices?.[0]?.message?.content;
-
-    res.status(200).json({ message });
+    res.status(200).json({ message: data.choices[0].message.content });
   } catch (err) {
-    console.error("Error:", err);
+    console.error("🔥 Error:", err);
     res.status(500).json({ message: "Error al conectar con la IA." });
   }
 }
