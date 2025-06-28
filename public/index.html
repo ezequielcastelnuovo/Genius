@@ -5,8 +5,10 @@
   <title>Genius</title>
   <style>
     body { font-family: sans-serif; padding: 20px; background: #f4f4f4; }
-    #chat { white-space: pre-line; margin-bottom: 20px; background: #fff; padding: 10px; border-radius: 5px; }
+    #chat { white-space: pre-line; margin-bottom: 20px; background: #fff; padding: 10px; border-radius: 5px; max-height: 400px; overflow-y: auto; }
     input, button { padding: 10px; font-size: 16px; margin-top: 10px; }
+    .error { color: red; }
+    .success { color: green; }
   </style>
 </head>
 <body>
@@ -19,6 +21,12 @@
     async function enviarTema() {
       const tema = document.getElementById("tema").value;
       const chat = document.getElementById("chat");
+      
+      if (!tema.trim()) {
+        chat.innerHTML += `<span class="error">❌ Por favor, escribe un tema.</span>\n`;
+        return;
+      }
+      
       chat.innerHTML += `\n👤 Tema: ${tema}\n⏳ Cargando respuesta...\n`;
 
       try {
@@ -29,11 +37,26 @@
         });
 
         const data = await res.json();
-        chat.innerHTML += `🤖 ${data.respuesta}\n`;
-      } catch {
-        chat.innerHTML += "❌ Error al conectar con la IA.\n";
+        
+        if (!res.ok) {
+          chat.innerHTML += `<span class="error">❌ Error: ${data.message}</span>\n`;
+        } else {
+          chat.innerHTML += `<span class="success">🤖 ${data.respuesta}</span>\n`;
+        }
+      } catch (error) {
+        chat.innerHTML += `<span class="error">❌ Error de conexión: ${error.message}</span>\n`;
       }
+      
+      // Limpiar el input
+      document.getElementById("tema").value = "";
     }
+    
+    // Permitir enviar con Enter
+    document.getElementById("tema").addEventListener("keypress", function(event) {
+      if (event.key === "Enter") {
+        enviarTema();
+      }
+    });
   </script>
 </body>
 </html>
