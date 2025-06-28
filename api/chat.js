@@ -1,3 +1,5 @@
+import { DEFAULT_CONFIG, isFreeModel } from './config.js';
+
 export default async function handler(req, res) {
   const { tema } = req.body;
 
@@ -13,6 +15,12 @@ export default async function handler(req, res) {
     return res.status(500).json({ message: "Error de configuración: API key no encontrada" });
   }
 
+  // Verificar que estamos usando un modelo gratuito
+  if (!isFreeModel(DEFAULT_CONFIG.model)) {
+    console.error("❌ Error: Intentando usar modelo de pago");
+    return res.status(500).json({ message: "Error: Configuración de modelo de pago detectada" });
+  }
+
   try {
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
@@ -22,13 +30,15 @@ export default async function handler(req, res) {
         "HTTP-Referer": "https://genius-ten-orpin.vercel.app", // importante que coincida con el dominio
       },
       body: JSON.stringify({
-        model: "openai/gpt-3.5-turbo",
+        model: DEFAULT_CONFIG.model, // Usar configuración gratuita
         messages: [
           {
             role: "user",
             content: prompt
           }
-        ]
+        ],
+        max_tokens: DEFAULT_CONFIG.max_tokens, // Limitar tokens para ahorrar
+        temperature: DEFAULT_CONFIG.temperature
       })
     });
 
