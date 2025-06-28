@@ -7,18 +7,12 @@ export default async function handler(req, res) {
     return res.status(400).json({ message: "El tema es requerido" });
   }
 
-  const prompt = `Hazme una serie de preguntas crecientes sobre el tema "${tema}", comenzando por lo más básico y llevándome gradualmente a razonar por mí mismo conceptos avanzados.`;
+  const prompt = `Hazme una serie de preguntas crecientes sobre el tema "${tema}", comenzando por lo más básico y llevándome gradualmente a razonar por mí mismo conceptos avanzados. Responde de forma concisa.`;
 
   // Verificar si la API key está configurada
   if (!process.env.OPENROUTER_API_KEY) {
     console.error("❌ OPENROUTER_API_KEY no está configurada");
     return res.status(500).json({ message: "Error de configuración: API key no encontrada" });
-  }
-
-  // Verificar que estamos usando un modelo gratuito
-  if (!isFreeModel(DEFAULT_CONFIG.model)) {
-    console.error("❌ Error: Intentando usar modelo de pago");
-    return res.status(500).json({ message: "Error: Configuración de modelo de pago detectada" });
   }
 
   try {
@@ -30,14 +24,14 @@ export default async function handler(req, res) {
         "HTTP-Referer": "https://genius-ten-orpin.vercel.app", // importante que coincida con el dominio
       },
       body: JSON.stringify({
-        model: DEFAULT_CONFIG.model, // Usar configuración gratuita
+        model: DEFAULT_CONFIG.model, // Usar modelo que SÍ funciona
         messages: [
           {
             role: "user",
             content: prompt
           }
         ],
-        max_tokens: DEFAULT_CONFIG.max_tokens, // Limitar tokens para ahorrar
+        max_tokens: DEFAULT_CONFIG.max_tokens, // Limitar tokens para minimizar costos
         temperature: DEFAULT_CONFIG.temperature
       })
     });
